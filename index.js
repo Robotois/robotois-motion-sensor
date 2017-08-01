@@ -1,6 +1,9 @@
 const MotionModule = require('bindings')('MotionSensorModule');
 const EventEmitter = require('events').EventEmitter;
 const inherits = require('util').inherits;
+
+const statusMap = ['No Activo', 'Activo'];
+
 /**
  * Creates an instance of MotionSensorModule.
  * @param {int} port The port number where this component us connected.
@@ -25,18 +28,11 @@ MotionSensorModule.prototype.getValue = function getValue() {
 };
 
 MotionSensorModule.prototype.enableEvents = function enableEvents() {
-  const self = this;
-  let prevState = self.motion.getValue();
-  let currentState;
-
   if (!this.eventInterval) {
     this.eventInterval = setInterval(() => {
-      currentState = self.motion.getValue();
-      if (currentState !== prevState) {
-        self.emit('change', currentState);
-        prevState = currentState;
-      }
-    }, 1000); // Tomar mediciones cada 1000ms
+      const value = this.motion.getValue();
+      this.emit('state', value, statusMap[value]);
+    }, 500); // Tomar mediciones cada 500ms
   }
 };
 

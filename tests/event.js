@@ -1,14 +1,12 @@
 const Motion = require('../index.js');
 
-const motion = new Motion(5);
+const motion = new Motion(6);
 motion.enableEvents();
 
-motion.on('change', (_state) => {
+motion.on('state', (value, status) => {
   /* eslint-disable no-console */
-  console.log(`Motion Sensor state changed: ${_state}`);
+  console.log(`Motion Sensor state: ${value} - ${status}`);
 });
-
-setInterval(() => {}, 10000);
 
 process.on('SIGTERM', () => {
   process.exit();
