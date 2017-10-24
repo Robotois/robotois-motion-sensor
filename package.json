@@ -19,6 +19,11 @@
       "url": "http://armando.mx/"
     }
   ],
+  "homepage": "https://github.com/Robotois/robotois-motion-sensor",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Robotois/robotois-motion-sensor.git"
+  },
   "license": "ISC",
   "dependencies": {
     "bindings": "^1.2.1"

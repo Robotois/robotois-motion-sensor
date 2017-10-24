@@ -13,6 +13,7 @@ function MotionSensorModule(port) {
   const self = this;
   EventEmitter.call(this);
   this.motion = new MotionModule(port);
+  this.prevValue = -1;
 
   process.on('SIGINT', () => {
     self.motion.release();
@@ -27,22 +28,28 @@ MotionSensorModule.prototype.getValue = function getValue() {
   return this.motion.getValue();
 };
 
-MotionSensorModule.prototype.enableEvents = function enableEvents() {
-  if (!this.eventInterval) {
-    this.eventInterval = setInterval(() => {
-      const value = this.motion.getValue();
-      this.emit('state', value, statusMap[value]);
-    }, 500); // Tomar mediciones cada 500ms
-  }
+MotionSensorModule.prototype.publishNow = function publishNow() {
+  this.mqttClient.publish(this.myTopic, this.motion.getValue().toString());
 };
 
-MotionSensorModule.prototype.when = function when(callback) {
-  this.enableEvents();
-  this.on('change', (state) => {
-    if (state) {
-      callback();
+MotionSensorModule.prototype.enableEvents = function enableEvents(mqttConfig) {
+  if (mqttConfig) {
+    this.mqttClient = mqttConfig.mqttClient;
+    this.myTopic = `digitalInputs/motionSensor${mqttConfig.instance}`;
+  }
+  const self = this;
+  function run() {
+    const currentValue = self.motion.getValue();
+    if (self.prevValue !== currentValue) {
+      self.emit('change', currentValue, statusMap[currentValue]);
+      if (self.mqttClient) {
+        self.mqttClient.publish(self.myTopic, currentValue.toString());
+      }
+      self.prevValue = currentValue;
     }
-  });
+    setImmediate(run);
+  }
+  setTimeout(run, 1000);
 };
 
 MotionSensorModule.prototype.release = function release() {
